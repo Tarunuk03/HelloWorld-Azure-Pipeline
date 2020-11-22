@@ -1,0 +1,36 @@
+# Configuration of target feed
+variables:
+- name: projectName
+  value: "Sample Project"
+- name: feedName
+  value: "Sample"
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: |
+    make
+  displayName: 'Build program'
+  
+- script: |
+    cp main $(Build.ArtifactStagingDirectory)/
+  displayName: 'Stage Artifact'
+  
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'main'
+  displayName: 'Publish Pipeline Artifact'
+
+- task: UniversalPackages@0
+  displayName: Publish to artifact feed
+  inputs:
+    command: publish
+    publishDirectory: '$(Build.ArtifactStagingDirectory)'
+    vstsFeedPublish: $(projectName)/$(feedName)
+    vstsFeedPackagePublish: 'main'
+    packagePublishDescription: 'Demo program'
